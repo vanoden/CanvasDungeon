@@ -1,0 +1,460 @@
+<html>
+<head>
+	<title>Home</title>
+	<script language="javascript">
+		var left = 0;
+		var ttop = 0;
+		var right = 600;
+		var bottom = 600;
+	
+		var pov_x = 100;
+		var pov_y = 60;
+
+		var speed = 5;
+
+
+		var wall = [
+			[
+				[40,0],
+				[40,20]
+			],
+			[
+				[20,20],
+				[20,60]
+			],
+			[
+				[20,20],
+				[40,20]
+			],
+			[
+				[0,90],
+				[20,90]
+			],
+			[
+				[20,90],
+				[20,160]
+			],
+			[
+				[400,20],
+				[400,60]
+			],
+			[
+				[300,80],
+				[300,160]
+			],
+			[
+				[120,200],
+				[400,200]
+			],
+			[
+				[100,100],
+				[100,120]
+			],
+			[
+				[100,100],
+				[120,100]
+			],
+			[
+				[120,100],
+				[120,120]
+			],
+			[
+				[120,120],
+				[100,120]
+			]
+		];
+
+		// Add Key Listener
+		document.onkeydown = checkKey;
+
+		// returns true if the line from (a,b)->(c,d) intersects with (p,q)->(r,s)
+		function intersects(a,b,c,d,p,q,r,s) {
+			var det, gamma, lambda;
+			//console.log("x1: " + a + " y1: " + b + " x2: " + c + " y2: " + d + " xx1: " + p + " yy1: " + q + " xx2: " + r + " yy2: " + s)
+			det = (c - a) * (s - q) - (r - p) * (d - b);
+			//console.log("Det: " + det);
+			if (det === 0) {
+				return false;
+			}
+			else {
+				lambda = ((s - q) * (r - a) + (p - r) * (s - b)) / det;
+				//console.log("Lambda: " + lambda);
+				gamma = ((b - d) * (r - a) + (c - a) * (s - b)) / det;
+				//console.log("Gamma: " + gamma);
+				return (0 < lambda && lambda < 1) && (0 < gamma && gamma < 1);
+			}
+		};
+
+		// returns true if the point is on the line
+		function onLine(a,b,c,d,x,y) {
+			if (a == c) {
+				if (x == a) {
+					if (b < d) {
+						if (y >= b && y <= d) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+					else {
+						if (y >= d && y <= b) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+				}
+				else {
+					return false;
+				}
+			}
+			else if (b == d) {
+				if (y == b) {
+					if (a < c) {
+						if (x >= a && x <= c) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+					else {
+						if (x >= c && x <= a) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				var slope = (d - b) / (c - a);
+				var y_int = b - (slope * a);
+				console.log("y = " + slope + "x + " + y_int);
+				if (y == (slope * x) + y_int) {
+					console.log(y + " = " + ((slope * x) + y_int));
+					if (a < c) {
+						if (x >= a && x <= c) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+					else {
+						if (x >= c && x <= a) {
+							return true;
+						}
+						else {
+							return false;
+						}
+					}
+				}
+				else {
+					return false;
+				}
+			}
+			var slope = (d - b) / (c - a);
+			var y_int = b - (slope * a);
+			console.log("y = " + slope + "x + " + y_int);
+			if (y == (slope * x) + y_int) {
+				console.log(y + " = " + ((slope * x) + y_int));
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		// Act if a key is pressed
+		function checkKey(e) {
+			e = e || window.event;
+
+			var old_x = pov_x;
+			var old_y = pov_y;
+
+			var redraw = false;
+			if (e.keyCode == '38') {
+				// up arrow
+				pov_y = pov_y - speed;
+				redraw = true;
+			}
+			else if (e.keyCode == '40') {
+				// down arrow
+				pov_y = pov_y + speed;
+				redraw = true;
+			}
+			else if (e.keyCode == '37') {
+				// left arrow
+				pov_x = pov_x - speed;	
+				redraw = true;
+			}
+			else if (e.keyCode == '39') {
+				// right arrow
+				pov_x = pov_x + speed;
+				redraw = true;
+			}
+
+			// Collision Detection
+			for (var w = 0; w < wall.length; w++) {
+				if (intersects(wall[w][0][0], wall[w][0][1], wall[w][1][0], wall[w][1][1], old_x, old_y, pov_x, pov_y)) {
+					pov_x = old_x;
+					pov_y = old_y;
+					return;
+				}
+				else if (onLine(wall[w][0][0], wall[w][0][1], wall[w][1][0], wall[w][1][1], pov_x, pov_y)) {
+					pov_x = old_x;
+					pov_y = old_y;
+					return;
+				}
+			}
+			if (redraw) draw();
+		}
+
+		// Draw the Canvas
+		function draw() {
+			var floorImg = document.getElementById('floor01');
+			var hero_00_stand = document.getElementById('hero_00_stand');
+			var brownbrick_00 = document.getElementById('brownbrick_90');
+
+			const canvas = document.getElementById("floor");
+			if (canvas.getContext) {
+				// Update the Display
+				const ctx = canvas.getContext("2d");
+
+				ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+				var floorPattern = ctx.createPattern(floorImg, "repeat");
+				ctx.fillStyle = floorPattern;
+				ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+				ctx.fill();
+
+				// Draw Person
+				ctx.drawImage(hero_00_stand, pov_x - 8, pov_y - 8, 16, 16);
+
+				// Draw Walls
+				/*
+				ctx.strokeStyle = '#777777';
+				ctx.lineWidth = 4;
+				*/
+				var wallPattern = ctx.createPattern(brownbrick_00, "repeat");
+				//for (var w = 0; w < wall.length; w++) {
+				for (var w = 1; w < 1; w ++) {
+					var wallLeft = wall[w][0][0] - 8;
+					var wallTop = wall[w][0][1] - 8;
+					var width = Math.abs(wall[w][1][0] - wall[w][0][0]);
+					var height = Math.abs(wall[w][1][1] - wall[w][0][1]);
+					var wallRight = wallLeft + width + 8;
+					var wallBottom = wallTop + height + 8;
+					console.log("Wall: " + wallLeft + "X" + wallTop + " " + wallRight + "X" + wallBottom);
+
+					ctx.fillStyle = wallPattern;
+					ctx.rect(wallLeft, wallTop, wallRight, wallBottom);
+					ctx.stroke();
+					/*
+					ctx.beginPath();
+					ctx.moveTo(wall[w][0][0], wall[w][0][1]);
+					ctx.lineTo(wall[w][1][0], wall[w][1][1]);
+					ctx.stroke();
+					*/
+				}
+
+
+				// Draw Shadow
+				ctx.strokeStyle = '#000000';
+				ctx.lineWidth = 1;
+				for (var w = 0; w < wall.length; w++) {
+					ctx.fillStyle = '#000000';
+					var shdw_x_0 = 0;
+					var shdw_y_0 = 0;
+
+					var diff_x_0 = wall[w][0][0] - pov_x;
+					var diff_y_0 = wall[w][0][1] - pov_y;
+
+					if (diff_x_0 > 0) {
+						shdw_x_0 = right;
+					}
+					else if (diff_x_0 == 0) {
+						console.log("LOS1: "+wall[w][0][0]);
+						shdw_x_0 = wall[w][0][0];
+					}
+					else {
+						shdw_x_0 = left;
+					}
+
+					if (diff_y_0 > 0) {
+						shdw_y_0 = bottom;
+					}
+					else if (diff_y_0 == 0) {
+						console.log("LOS2");
+						shdw_y_0 = wall[w][0][1];
+					}
+					else {
+						shdw_y_0 = ttop;
+					}
+
+					var len_x_0, len_y_0, outr_x_0, outr_y_0;
+					len_x_0 = wall[w][0][0] - shdw_x_0;
+					if (diff_x_0 == 0 && diff_y_0 < 0) len_y_0 = wall[w][0][1];
+					else if (diff_x_0 == 0 && diff_y_0 > 0) len_y_0 = wall[w][0][1] - bottom;
+					else len_y_0 = len_x_0 * (diff_y_0/diff_x_0);
+					outr_x_0 = wall[w][0][0] - len_x_0;
+					outr_y_0 = wall[w][0][1] - len_y_0;
+
+					var diff_x_1 = wall[w][1][0] - pov_x;
+					var diff_y_1 = wall[w][1][1] - pov_y;
+					var shdw_x_1 = 0;
+					var shdw_y_1 = 0;
+
+					if (diff_x_1 > 0) {
+						shdw_x_1 = right;
+					}
+					else if (diff_x_1 == 0) {
+						console.log("LOS3");
+						shdw_x_1 = wall[w][1][0];
+					}
+					else {
+						shdw_x_1 = left;
+					}
+
+					if (diff_y_1 > 0) {
+						shdw_y_1 = bottom;
+					}
+					else if (diff_y_1 == 0) {
+						console.log("LOS4");
+						shdw_y_1 = wall[w][1][1];
+					}
+					else {
+						shdw_y_1 = ttop;
+					}
+
+					var len_x_1, len_y_1, outr_x_1, outr_y_1;
+					len_x_1 = wall[w][1][0] - shdw_x_1;
+					if (diff_x_1 == 0 && diff_y_1 < 0) len_y_1 = wall[w][1][1];
+					else if (diff_x_1 == 0 && diff_y_1 > 0) len_y_1 = wall[w][1][1] - bottom;
+					else len_y_1 = len_x_1 * (diff_y_1/diff_x_1);
+					outr_x_1 = wall[w][1][0] - len_x_1;
+					outr_y_1 = wall[w][1][1] - len_y_1;
+
+					
+					console.log("top: " + ttop + " bottom: " + bottom + " left: " + left + " right: " + right);
+					console.log("pov_x: " + pov_x + " pov_y: " + pov_y);
+					console.log("diff_x_0: " + diff_x_0 + " diff_y_0: " + diff_y_0 + " diff_x_1: " + diff_x_1 + " diff_y_1: " + diff_y_1);
+					console.log("outr_x_0: " + outr_x_0 + " outr_y_0: " + outr_y_0 + " outr_x_1: " + outr_x_1 + " outr_y_1: " + outr_y_1);
+
+					// Draw Shadow
+					ctx.beginPath();
+					ctx.moveTo(outr_x_0, outr_y_0);
+					ctx.lineTo(wall[w][0][0], wall[w][0][1]);
+					ctx.lineTo(wall[w][1][0], wall[w][1][1]);
+					ctx.lineTo(outr_x_1, outr_y_1);
+					ctx.fill();
+
+					// Extend Shadow to outer walls
+					// Up shadow
+					if (outr_x_0 == left && outr_x_1 != left && outr_y_0 < wall[w][0][1]) {
+						//ctx.fillStyle = '#000088';
+						var corner_0_x = left;
+						var corner_0_y = ttop;
+						if (outr_y_1 > ttop) {
+							console.log("Full");
+							corner_1_x = right;
+							corner_1_y = ttop;
+						}
+						else {
+							console.log("Partial");
+							corner_1_x = outr_x_1;
+							corner_1_y = outr_y_1;
+						}
+
+						ctx.beginPath();
+						ctx.moveTo(corner_0_x, corner_0_y);
+						ctx.lineTo(corner_1_x, corner_1_y);
+						ctx.lineTo(outr_x_1, outr_y_1);
+						ctx.lineTo(outr_x_0, outr_y_0);
+						ctx.fill();
+					}
+					else if (outr_x_0 == left && outr_x_1 != left && outr_y_0 > wall[w][0][1]) {
+						//ctx.fillStyle = '#008800';
+						var corner_0_x = left;
+						var corner_0_y = bottom;
+						if (outr_y_1 < bottom) {
+							console.log("Full");
+							corner_1_x = right;
+							corner_1_y = bottom;
+						}
+						else {
+							console.log("Partial");
+							corner_1_x = outr_x_1;
+							corner_1_y = outr_y_1;
+						}
+
+						ctx.beginPath();
+						ctx.moveTo(corner_0_x, corner_0_y);
+						ctx.lineTo(corner_1_x, corner_1_y);
+						ctx.lineTo(outr_x_1, outr_y_1);
+						ctx.lineTo(outr_x_0, outr_y_0);
+						ctx.fill();
+					}
+					else if (outr_y_0 == top && outr_x_0 < wall[w][0][0]) {
+						//ctx.fillStyle = '#880000';
+						var corner_0_x = left;
+						var corner_0_y = ttop;
+						if (outr_x_1 > left) {
+							console.log("Full");
+							corner_1_x = left;
+							corner_1_y = bottom;
+						}
+						else {
+							console.log("Partial");
+							corner_1_x = outr_x_1;
+							corner_1_y = outr_y_1;
+						}
+
+						ctx.beginPath();
+						ctx.moveTo(corner_0_x, corner_0_y);
+						ctx.lineTo(corner_1_x, corner_1_y);
+						ctx.lineTo(outr_x_1, outr_y_1);
+						ctx.lineTo(outr_x_0, outr_y_0);
+						ctx.fill();
+					}
+					else if (outr_y_0 == top && outr_x_0 > wall[w][0][0]) {
+						//ctx.fillStyle = '#888800';
+						var corner_0_x = right;
+						var corner_0_y = ttop;
+						if (outr_x_1 < right) {
+							console.log("Full");
+							corner_1_x = right;
+							corner_1_y = bottom;
+						}
+						else {
+							console.log("Partial");
+							corner_1_x = outr_x_1;
+							corner_1_y = outr_y_1;
+						}
+
+						ctx.beginPath();
+						ctx.moveTo(corner_0_x, corner_0_y);
+						ctx.lineTo(corner_1_x, corner_1_y);
+						ctx.lineTo(outr_x_1, outr_y_1);
+						ctx.lineTo(outr_x_0, outr_y_0);
+						ctx.fill();
+					}
+				}
+			}
+		}
+	</script>
+</head>
+<body onload="draw()">
+	<canvas id="floor" width="600" height="600"></canvas>
+	<img id="floor01" src="image/floor/stone01.jpg" style="display:none" />
+	<img id="hero_00_stand" src="image/character/hero_00_stand.png" style="display:none" />
+	<img id="brownbrick_90" src="image/wall/brownbrick_90.png" style="display:none" />
+</body>
+</html>
